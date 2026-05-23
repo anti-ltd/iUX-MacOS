@@ -1,16 +1,59 @@
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/opensourcevillain/resources/bc6072cd7f49dc155b47c88e79daa9d49ece9b7e/OpenSourceVillain/Banner.png" alt="Open Source Villain">
+
+<br><br>
+
+<img src="assets/icon.png" width="140" alt="iUX">
+
 # iUX
 
 **The shared UX layer for our macOS apps.**
+
+![Platform](https://img.shields.io/badge/macOS%2026%20Tahoe-black?style=flat-square)
+![Language](https://img.shields.io/badge/Swift%206.1-orange?style=flat-square&logo=swift)
+![SwiftPM](https://img.shields.io/badge/SwiftPM-source--only-blue?style=flat-square)
+![Linking](https://img.shields.io/badge/static-linked-brightgreen?style=flat-square)
+
+`settings · menu bar · overlays`
+
+</div>
+
+---
+
+## What it is
 
 iUX is a tiny, source-only Swift package. Every app links it and gets the same
 settings popover, menu-bar agent and floating overlay windows — so we stop
 re-coding widget chrome, settings layouts and popover styling app by app.
 
-The components, spacing and styling are lifted straight from **Clonk** so apps
-already built by hand keep matching pixel-for-pixel after migrating.
+The components, spacing and styling are lifted straight from **[Clonk](../clonk)**
+so apps already built by hand keep matching pixel-for-pixel after migrating.
 
-It's source-only and static-linked, so each app's binary only pays for the
-pieces it actually uses.
+---
+
+## Source-only
+
+iUX ships **no binary** — just Swift source. Apps add it as a local or git
+dependency and `import iUX`. It static-links and dead-code-strips, so each app's
+binary only pays for the pieces it actually uses. Change a design token in one
+place and every app that links iUX moves together.
+
+---
+
+## What's inside
+
+| Component | Role |
+|-----------|------|
+| **`UX`** | Design tokens — popover width/padding, card spacing, row padding, dark-glass radius/opacities. The single source of truth for the look. |
+| **`SettingsPopover`** | Segmented tab switcher over a fixed-width content column. Supply a `SettingsTab` enum and a per-tab content builder. |
+| **`CardSection`** | A titled group of rows. |
+| **`ToggleRow`** | Label (+ optional subtitle) and a switch. |
+| **`SliderRow`** | Label, slider and read-out; `.percent(…)` for 0–1 sliders. |
+| **`PlayButton`** | The circular tinted preview button. |
+| **`MenuBarController`** | Installs an `NSStatusItem` — left-click toggles a transient popover, right-click (or Control-click) shows an app-supplied `NSMenu`. |
+| **`OverlayWindow<Content>`** | Borderless, draggable, always-on-top panel that joins every Space, stays out of the Dock/Cmd-Tab, and persists its frame per name. |
+| **`.glassPanel()`** | The dark-glass chrome (rounded fill + hairline border) for content inside an overlay. |
 
 ---
 
@@ -32,35 +75,6 @@ targets: [
 ```
 
 Then `import iUX`.
-
----
-
-## What's inside
-
-### Design tokens — `UX`
-The single source of truth for the look: popover width/padding, card spacing,
-row padding, and the dark-glass panel radius/opacities. Change a number here and
-every app moves together.
-
-### Settings / popover kit
-- **`SettingsPopover`** — the segmented tab switcher over a fixed-width content
-  column. Supply a `SettingsTab` enum and a per-tab content builder.
-- **`CardSection`** — a titled group of rows.
-- **`ToggleRow`** — label (+ optional subtitle) and a switch.
-- **`SliderRow`** — label, slider and read-out; `.percent(…)` for 0–1 sliders.
-- **`PlayButton`** — the circular tinted preview button.
-
-### Menu-bar host — `MenuBarController`
-Installs an `NSStatusItem`: left-click toggles a transient popover, right-click
-(or Control-click) shows an app-supplied `NSMenu`. Keep one alive on your app
-delegate.
-
-### Overlay window system
-- **`OverlayWindow<Content>`** — a borderless, draggable, always-on-top panel
-  that joins every Space, stays out of the Dock/Cmd-Tab, and persists its frame
-  per name.
-- **`.glassPanel()`** — the dark-glass chrome (rounded fill + hairline border)
-  for the content you put inside an overlay.
 
 ---
 
@@ -111,4 +125,40 @@ let overlay = OverlayWindow(name: "widget", size: NSSize(width: 220, height: 90)
     Text("hello").padding().glassPanel(padding: 12)
 }
 overlay.show()
+```
+
+---
+
+## How it works
+
+| File | Role |
+|------|------|
+| [`Tokens.swift`](Sources/iUX/Theme/Tokens.swift) | Design tokens — the `UX` namespace of shared metrics |
+| [`SettingsPopover.swift`](Sources/iUX/Settings/SettingsPopover.swift) | Segmented tab switcher + fixed-width content column |
+| [`CardSection.swift`](Sources/iUX/Settings/CardSection.swift) | Titled card group of rows |
+| [`Rows.swift`](Sources/iUX/Settings/Rows.swift) | `ToggleRow`, `SliderRow`, `PlayButton` |
+| [`MenuBarController.swift`](Sources/iUX/MenuBar/MenuBarController.swift) | `NSStatusItem` host — popover + right-click menu |
+| [`OverlayWindow.swift`](Sources/iUX/Overlay/OverlayWindow.swift) | Borderless, draggable, always-on-top panel |
+| [`GlassPanel.swift`](Sources/iUX/Overlay/GlassPanel.swift) | The `.glassPanel()` dark-glass chrome |
+
+---
+
+## Building
+
+Requires **macOS 26 (Tahoe)** and a recent Swift toolchain.
+
+iUX is a library — there's nothing to run on its own. Build and test it with SwiftPM:
+
+```bash
+swift build      # compile the library
+swift test       # run the tests (if any)
+```
+
+Apps consume it via a local path (`../iUX`). Check it out as a sibling directory
+beside the apps that depend on it:
+
+```
+Projects/
+├── clonk/   ← an app that links iUX
+└── iUX/     ← this repo · https://github.com/anti-ltd/iux
 ```

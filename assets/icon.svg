@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="10%" y1="0%" x2="90%" y2="100%">
+      <stop offset="0%" stop-color="#38d6e6"/><stop offset="52%" stop-color="#3f86ff"/><stop offset="100%" stop-color="#6a52e8"/>
+    </linearGradient>
+    <radialGradient id="dome" cx="50%" cy="-18%" r="95%">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.55"/><stop offset="42%" stop-color="#fff" stop-opacity="0.14"/><stop offset="62%" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="55%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#0b1a4a" stop-opacity="0.42"/>
+    </linearGradient>
+    <linearGradient id="sheetA" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff" stop-opacity="0.55"/><stop offset="100%" stop-color="#fff" stop-opacity="0.26"/></linearGradient>
+    <linearGradient id="sheetB" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff" stop-opacity="0.34"/><stop offset="100%" stop-color="#fff" stop-opacity="0.15"/></linearGradient>
+    <linearGradient id="sheetC" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff" stop-opacity="0.24"/><stop offset="100%" stop-color="#fff" stop-opacity="0.10"/></linearGradient>
+    <radialGradient id="spec" cx="42%" cy="30%" r="62%"><stop offset="0%" stop-color="#fff" stop-opacity="0.7"/><stop offset="60%" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <clipPath id="sq"><path d="M1024.00,512.00 L1024.00,673.83 C1024.00,774.66 1024.00,825.08 1006.84,879.34 C985.27,938.60 938.60,985.27 879.34,1006.84 C825.08,1024.00 774.66,1024.00 673.83,1024.00 L350.17,1024.00 C249.34,1024.00 198.92,1024.00 144.66,1006.84 C85.40,985.27 38.73,938.60 17.16,879.34 C0.00,825.08 0.00,774.66 0.00,673.83 L0.00,350.17 C0.00,249.34 0.00,198.92 17.16,144.66 C38.73,85.40 85.40,38.73 144.66,17.16 C198.92,0.00 249.34,0.00 350.17,0.00 L673.83,0.00 C774.66,0.00 825.08,0.00 879.34,17.16 C938.60,38.73 985.27,85.40 1006.84,144.66 C1024.00,198.92 1024.00,249.34 1024.00,350.17 Z"/></clipPath>
+    <filter id="sh" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#0a1442" flood-opacity="0.40"/></filter>
+  </defs>
+
+  <path d="M1024.00,512.00 L1024.00,673.83 C1024.00,774.66 1024.00,825.08 1006.84,879.34 C985.27,938.60 938.60,985.27 879.34,1006.84 C825.08,1024.00 774.66,1024.00 673.83,1024.00 L350.17,1024.00 C249.34,1024.00 198.92,1024.00 144.66,1006.84 C85.40,985.27 38.73,938.60 17.16,879.34 C0.00,825.08 0.00,774.66 0.00,673.83 L0.00,350.17 C0.00,249.34 0.00,198.92 17.16,144.66 C38.73,85.40 85.40,38.73 144.66,17.16 C198.92,0.00 249.34,0.00 350.17,0.00 L673.83,0.00 C774.66,0.00 825.08,0.00 879.34,17.16 C938.60,38.73 985.27,85.40 1006.84,144.66 C1024.00,198.92 1024.00,249.34 1024.00,350.17 Z" fill="url(#bg)"/>
+  <g clip-path="url(#sq)"><rect width="1024" height="1024" fill="url(#dome)"/><rect width="1024" height="1024" fill="url(#shade)"/></g>
+
+  <!-- stacked glass layers, back to front -->
+  <g filter="url(#sh)"><path d="M512,504 L834,664 L512,824 L190,664 Z" fill="url(#sheetC)"/></g>
+  <path d="M512,504 L834,664 L512,824 L190,664 Z" fill="none" stroke="#fff" stroke-opacity="0.40" stroke-width="3"/>
+  <g filter="url(#sh)"><path d="M512,350 L834,510 L512,670 L190,510 Z" fill="url(#sheetB)"/></g>
+  <path d="M512,350 L834,510 L512,670 L190,510 Z" fill="none" stroke="#fff" stroke-opacity="0.50" stroke-width="3"/>
+  <g filter="url(#sh)"><path d="M512,196 L834,356 L512,516 L190,356 Z" fill="url(#sheetA)"/></g>
+  <path d="M512,196 L834,356 L512,516 L190,356 Z" fill="url(#spec)" opacity="0.8"/>
+  <path d="M512,196 L834,356 L512,516 L190,356 Z" fill="none" stroke="#fff" stroke-opacity="0.7" stroke-width="3.5"/>
+
+  <path d="M1024.00,512.00 L1024.00,673.83 C1024.00,774.66 1024.00,825.08 1006.84,879.34 C985.27,938.60 938.60,985.27 879.34,1006.84 C825.08,1024.00 774.66,1024.00 673.83,1024.00 L350.17,1024.00 C249.34,1024.00 198.92,1024.00 144.66,1006.84 C85.40,985.27 38.73,938.60 17.16,879.34 C0.00,825.08 0.00,774.66 0.00,673.83 L0.00,350.17 C0.00,249.34 0.00,198.92 17.16,144.66 C38.73,85.40 85.40,38.73 144.66,17.16 C198.92,0.00 249.34,0.00 350.17,0.00 L673.83,0.00 C774.66,0.00 825.08,0.00 879.34,17.16 C938.60,38.73 985.27,85.40 1006.84,144.66 C1024.00,198.92 1024.00,249.34 1024.00,350.17 Z" fill="none" stroke="#fff" stroke-opacity="0.22" stroke-width="3"/>
+</svg>
