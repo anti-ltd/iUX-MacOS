@@ -20,6 +20,13 @@ public enum UX {
     /// Vertical padding inside a settings row (toggles, sliders).
     public static let rowVPadding: CGFloat = 10
 
+    // MARK: Sidebar (window-based apps)
+
+    /// Minimum width of the navigation sidebar before the split view clamps.
+    public static let sidebarMinWidth: CGFloat = 200
+    /// Preferred resting width of the navigation sidebar.
+    public static let sidebarIdealWidth: CGFloat = 220
+
     // MARK: Floating overlay panels ("dark glass")
 
     /// Corner radius for floating overlay panels.
