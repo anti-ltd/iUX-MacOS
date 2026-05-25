@@ -48,18 +48,19 @@ public struct SidebarNavigator<Item: SidebarItem, Detail: View, Footer: View>: V
     public var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             List(items, selection: $selection) { item in
-                Label(item.title, systemImage: item.icon).tag(item)
+                NavigationLink(value: item) {
+                    Label(item.title, systemImage: item.icon)
+                }
             }
             .listStyle(.sidebar)
             .navigationSplitViewColumnWidth(min: UX.sidebarMinWidth, ideal: UX.sidebarIdealWidth)
             .navigationTitle(title)
+            .navigationDestination(for: Item.self) { item in
+                detail(item)
+            }
             .safeAreaInset(edge: .bottom) { footer }
         } detail: {
-            if let selection {
-                detail(selection)
-            } else {
-                ContentUnavailableView(emptyPrompt, systemImage: "sidebar.left")
-            }
+            ContentUnavailableView(emptyPrompt, systemImage: "sidebar.left")
         }
     }
 
