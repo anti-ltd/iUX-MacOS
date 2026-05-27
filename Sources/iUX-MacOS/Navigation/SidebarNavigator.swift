@@ -46,21 +46,27 @@ public struct SidebarNavigator<Item: SidebarItem, Detail: View, Footer: View>: V
     }
 
     public var body: some View {
+        // NavigationSplitView two-column pattern: bind the sidebar List to
+        // `selection`, and let the detail column render directly off that
+        // selection. Earlier this used `.navigationDestination(for:)` inside
+        // the sidebar column, which works for click-driven navigation but
+        // silently no-ops when something sets `selection` programmatically
+        // (e.g. App-arently's AppStage driver seeding `selection` at launch) —
+        // the list row highlights but the detail column stays on `emptyPrompt`.
         NavigationSplitView(columnVisibility: $columnVisibility) {
             List(items, selection: $selection) { item in
-                NavigationLink(value: item) {
-                    Label(item.title, systemImage: item.icon)
-                }
+                Label(item.title, systemImage: item.icon).tag(item)
             }
             .listStyle(.sidebar)
             .navigationSplitViewColumnWidth(min: UX.sidebarMinWidth, ideal: UX.sidebarIdealWidth)
             .navigationTitle(title)
-            .navigationDestination(for: Item.self) { item in
-                detail(item)
-            }
             .safeAreaInset(edge: .bottom) { footer }
         } detail: {
-            ContentUnavailableView(emptyPrompt, systemImage: "sidebar.left")
+            if let item = selection {
+                detail(item)
+            } else {
+                ContentUnavailableView(emptyPrompt, systemImage: "sidebar.left")
+            }
         }
     }
 
