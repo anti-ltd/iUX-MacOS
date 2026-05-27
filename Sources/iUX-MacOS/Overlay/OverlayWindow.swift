@@ -46,7 +46,19 @@ public final class OverlayWindow<Content: View>: NSPanel {
                 host.bottomAnchor.constraint(equalTo: cv.bottomAnchor),
             ])
         }
+
+        // Save position/size whenever the user drags or resizes the overlay,
+        // so it survives an unclean quit — not just an explicit hide.
+        let nc = NotificationCenter.default
+        nc.addObserver(self, selector: #selector(frameChanged),
+                       name: NSWindow.didMoveNotification, object: self)
+        nc.addObserver(self, selector: #selector(frameChanged),
+                       name: NSWindow.didResizeNotification, object: self)
     }
+
+    deinit { NotificationCenter.default.removeObserver(self) }
+
+    @objc private func frameChanged() { persist() }
 
     public override var canBecomeKey: Bool { false }
     public override var canBecomeMain: Bool { false }

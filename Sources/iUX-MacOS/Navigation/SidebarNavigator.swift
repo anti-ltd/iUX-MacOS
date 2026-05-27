@@ -53,9 +53,18 @@ public struct SidebarNavigator<Item: SidebarItem, Detail: View, Footer: View>: V
         // silently no-ops when something sets `selection` programmatically
         // (e.g. App-arently's AppStage driver seeding `selection` at launch) —
         // the list row highlights but the detail column stays on `emptyPrompt`.
+        //
+        // Use the `List(selection:)` + `ForEach` + explicit `.tag(item)` form
+        // (not `List(items, selection:)`). The data-driven `List` initializer
+        // auto-tags each row with `item.id`, which silently shadows any
+        // `.tag(item)` you add inside — so the binding (typed `Item?`) never
+        // matches the row tag (`Item.ID`) and clicks become no-ops. This form
+        // makes the tag explicit and keeps the tag/selection types aligned.
         NavigationSplitView(columnVisibility: $columnVisibility) {
-            List(items, selection: $selection) { item in
-                Label(item.title, systemImage: item.icon).tag(item)
+            List(selection: $selection) {
+                ForEach(items) { item in
+                    Label(item.title, systemImage: item.icon).tag(item)
+                }
             }
             .listStyle(.sidebar)
             .navigationSplitViewColumnWidth(min: UX.sidebarMinWidth, ideal: UX.sidebarIdealWidth)
