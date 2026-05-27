@@ -50,6 +50,21 @@ public struct PopOutButton: View {
             // app stays inactive and the window opens behind whatever is in
             // front. Activate explicitly so the pop-out feels like a click.
             NSApp.activate(ignoringOtherApps: true)
+            // The popover that hosts this button dismisses on click, and the
+            // dismissal grabs first-responder back. Without an explicit
+            // `makeKeyAndOrderFront`, the new window comes up *visible* but
+            // not key — the toolbar still hit-tests (it's an NSControl that
+            // works in non-key windows) but the sidebar `List` won't track
+            // hover or accept clicks until the user clicks the titlebar.
+            // Async lets `openWindow` finish creating the NSWindow first.
+            let id = windowID
+            DispatchQueue.main.async {
+                for window in NSApp.windows {
+                    guard let raw = window.identifier?.rawValue, raw.contains(id) else { continue }
+                    window.makeKeyAndOrderFront(nil)
+                    break
+                }
+            }
         } label: {
             Image(systemName: "macwindow")
                 .foregroundStyle(.secondary)
@@ -65,36 +80,70 @@ public struct PopOutButton: View {
 /// the unified toolbar, transparent titlebar, and vibrant sidebar a manual
 /// `NSWindow` can't reproduce — keep it as a SwiftUI `Window`, not an
 /// `NSWindow(contentViewController:)`.
+///
+/// Selection lives at the call site (`@State private var selection: Tab? =
+/// .firstTab`) rather than inside this struct. An earlier draft hoisted the
+/// `@State` in here and the resulting `NavigationSplitView` rendered sidebar
+/// rows but dropped clicks. Mirroring the working `SidebarNavigator` callers
+/// (anti-manager, bundler, app-arently) by taking a `Binding` side-steps the
+/// inferred-tag-vs-Binding mismatches that hit generic wrappers.
+///
+/// The `NavigationSplitView` is built inline here (not via `SidebarNavigator`)
+/// because tag/selection inference through two layers of generic wrapper plus
+/// `RandomAccessCollection`-laundered cases collapses into a state where
+/// `List(selection:)` no longer matches its row tags. Constructing
+/// `NavigationSplitView` + `List` + `ForEach` directly with the concrete
+/// `Tab` in scope keeps the tag type aligned with the selection binding.
 @MainActor
 public struct SettingsWindow<Tab: SettingsTab, Content: View>: View
 where Tab.AllCases: RandomAccessCollection {
     private let title: String
+    private let items: [Tab]
     private let content: (Tab) -> Content
-    @State private var selection: Tab?
+    @Binding private var selection: Tab?
+    // Mirrors `SidebarNavigator`'s internal state. Owning it here (instead of
+    // letting `NavigationSplitView` manage default visibility) is what the
+    // collapse-toolbar button toggles, and matching SidebarNavigator's exact
+    // shape removes one variable when debugging sidebar interaction issues.
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
 
     public init(
         title: String,
-        initialTab: Tab,
+        selection: Binding<Tab?>,
         @ViewBuilder content: @escaping (Tab) -> Content
     ) {
         self.title = title
+        self._selection = selection
+        // Materialise once at init. `Array(Tab.allCases)` re-evaluated inside
+        // `body` would hand `ForEach` a fresh array on every redraw — IDs are
+        // stable so it isn't strictly wrong, but it adds a moving variable
+        // when chasing hit-testing bugs.
+        self.items = Array(Tab.allCases)
         self.content = content
-        self._selection = State(initialValue: initialTab)
     }
 
     public var body: some View {
-        SidebarNavigator(
-            title: title,
-            items: Array(Tab.allCases),
-            selection: $selection
-        ) { tab in
-            ScrollView {
-                content(tab)
-                    .padding(UX.popoverPadding)
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
+        NavigationSplitView(columnVisibility: $columnVisibility) {
+            List(selection: $selection) {
+                ForEach(items) { tab in
+                    Label(tab.title, systemImage: tab.icon).tag(tab)
+                }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .navigationTitle(tab.title)
+            .listStyle(.sidebar)
+            .navigationSplitViewColumnWidth(min: UX.sidebarMinWidth, ideal: UX.sidebarIdealWidth)
+            .navigationTitle(title)
+        } detail: {
+            if let tab = selection {
+                ScrollView {
+                    content(tab)
+                        .padding(UX.popoverPadding)
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .navigationTitle(tab.title)
+            } else {
+                ContentUnavailableView("Nothing selected", systemImage: "sidebar.left")
+            }
         }
     }
 }
