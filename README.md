@@ -1,5 +1,9 @@
 <div align="center">
 
+<img src="assets/banner.png" alt="iUX">
+
+<br>
+
 <img src="https://raw.githubusercontent.com/opensourcevillain/resources/bc6072cd7f49dc155b47c88e79daa9d49ece9b7e/OpenSourceVillain/Banner.png" alt="Open Source Villain">
 
 <br><br>
@@ -18,6 +22,10 @@
 `settings · menu bar · overlays`
 
 </div>
+
+---
+
+> Design tokens, settings chrome, menu-bar hosting, and overlay windows — the shared UX layer for every macOS app we build.
 
 ---
 
@@ -140,6 +148,14 @@ overlay.show()
 | [`MenuBarController.swift`](Sources/iUX/MenuBar/MenuBarController.swift) | `NSStatusItem` host — popover + right-click menu |
 | [`OverlayWindow.swift`](Sources/iUX/Overlay/OverlayWindow.swift) | Borderless, draggable, always-on-top panel |
 | [`GlassPanel.swift`](Sources/iUX/Overlay/GlassPanel.swift) | The `.glassPanel()` dark-glass chrome |
+
+---
+
+---
+
+## Privacy
+
+iUX is a source-only library. It makes no network connections, collects no analytics, and reads no user data. It has no runtime of its own — it static-links into each app that uses it.
 
 ---
 
