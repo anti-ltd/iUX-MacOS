@@ -59,7 +59,7 @@ place and every app that links iUX-MacOS moves together.
 | **`ToggleRow`** | Label (+ optional subtitle) and a switch. |
 | **`SliderRow`** | Label, slider and read-out; `.percent(…)` for 0–1 sliders. |
 | **`PlayButton`** | The circular tinted preview button. |
-| **`MenuBarController`** | Installs an `NSStatusItem` — left-click toggles a transient popover, right-click (or Control-click) shows an app-supplied `NSMenu`. |
+| **`MenuBarController`** | Installs an `NSStatusItem` — left-click toggles a transient popover, right-click (or Control-click) shows an app-supplied `NSMenu`. Pass `clickStyle: .leftClickMenu` to swap the buttons when the menu is the everyday surface; pass `activatesOnShow: true` when the popover contains text fields that need keyboard focus. |
 | **`OverlayWindow<Content>`** | Borderless, draggable, always-on-top panel that joins every Space, stays out of the Dock/Cmd-Tab, and persists its frame per name. |
 | **`.glassPanel()`** | The dark-glass chrome (rounded fill + hairline border) for content inside an overlay. |
 

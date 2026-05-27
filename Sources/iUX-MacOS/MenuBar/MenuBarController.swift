@@ -7,26 +7,49 @@ import SwiftUI
 // alive for the process lifetime — typically a property on their app delegate.
 @MainActor
 public final class MenuBarController: NSObject {
+    /// Which mouse button opens the popover vs the menu. Clonk's pattern (the
+    /// default) is left → popover, right → menu — appropriate when the popover
+    /// *is* the app. FileDen flips it: the left-click menu is the everyday
+    /// surface (New Den, Recents, …) and settings sit one right-click away.
+    public enum ClickStyle: Sendable {
+        /// Left-click toggles the popover, right-click (or Control-click) shows the menu. Default.
+        case leftClickPopover
+        /// Left-click shows the menu, right-click (or Control-click) toggles the popover.
+        case leftClickMenu
+    }
+
     private var statusItem: NSStatusItem?
     private let popover = NSPopover()
     private let menuProvider: (@MainActor () -> NSMenu?)?
+    private let clickStyle: ClickStyle
+    private let activatesOnShow: Bool
 
     /// - Parameters:
     ///   - symbolName: SF Symbol for the status-bar button.
     ///   - accessibilityLabel: VoiceOver description for the button.
     ///   - popoverSize: Initial content size (SwiftUI may resize height).
     ///   - rootView: The popover's SwiftUI content (usually a `SettingsPopover`).
-    ///   - menuProvider: Optional right-click menu. Return `nil` to make right-
-    ///     click behave like left-click. Rebuilt on every click, so it can
-    ///     reflect live state.
+    ///   - clickStyle: Which click opens the popover vs the menu. See `ClickStyle`.
+    ///   - activatesOnShow: When `true`, activate the app and key the popover's
+    ///     window whenever the popover opens. Needed when the popover contains
+    ///     text fields or any control that should accept typing immediately;
+    ///     status-item (accessory) apps don't activate by default, so without
+    ///     this the field stays unfocused.
+    ///   - menuProvider: Optional menu. Return `nil` to make the menu click
+    ///     fall back to toggling the popover. Rebuilt on every click, so it
+    ///     can reflect live state.
     public init(
         symbolName: String,
         accessibilityLabel: String,
         popoverSize: NSSize,
         rootView: some View,
+        clickStyle: ClickStyle = .leftClickPopover,
+        activatesOnShow: Bool = false,
         menuProvider: (@MainActor () -> NSMenu?)? = nil
     ) {
         self.menuProvider = menuProvider
+        self.clickStyle = clickStyle
+        self.activatesOnShow = activatesOnShow
         super.init()
         popover.behavior = .transient
         popover.animates = true
@@ -51,11 +74,17 @@ public final class MenuBarController: NSObject {
 
     @objc private func handleClick(_ sender: NSStatusBarButton) {
         let event = NSApp.currentEvent
-        let isRight = event?.type == .rightMouseUp ||
+        let isSecondary = event?.type == .rightMouseUp ||
             (event?.modifierFlags.contains(.control) ?? false)
-        if isRight, let menu = menuProvider?() {
-            // Attach the menu just for this click, then detach so left-click
-            // keeps toggling the popover instead of opening the menu.
+        // Map (primary/secondary) × (clickStyle) → menu vs. popover.
+        let wantsMenu: Bool
+        switch clickStyle {
+        case .leftClickPopover: wantsMenu = isSecondary
+        case .leftClickMenu:    wantsMenu = !isSecondary
+        }
+        if wantsMenu, let menu = menuProvider?() {
+            // Attach the menu just for this click, then detach so the other
+            // button keeps toggling the popover instead of opening the menu.
             statusItem?.menu = menu
             sender.performClick(nil)
             statusItem?.menu = nil
@@ -71,6 +100,10 @@ public final class MenuBarController: NSObject {
             popover.performClose(nil)
         } else {
             popover.show(relativeTo: anchor.bounds, of: anchor, preferredEdge: .minY)
+            // For agent apps with text fields in the popover, we need to bring
+            // the app forward — accessory apps don't activate on a status click,
+            // so without this the field never gets keyboard focus.
+            if activatesOnShow { NSApp.activate() }
             popover.contentViewController?.view.window?.makeKey()
         }
     }

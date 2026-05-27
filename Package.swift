@@ -10,7 +10,11 @@ import PackageDescription
 // uses.
 let package = Package(
     name: "iUX-MacOS",
-    platforms: [.macOS("26.0")],
+    // macOS 14 is the floor — none of the components use Tahoe-only APIs, and
+    // FileDen needs to keep running on 14–25 with FoundationModels weak-linked.
+    // Apps that want Tahoe-only behaviour can still pin a higher floor on their
+    // own target; the shared layer doesn't need to force it.
+    platforms: [.macOS(.v14)],
     products: [
         .library(name: "iUX-MacOS", targets: ["iUX-MacOS"]),
     ],

@@ -3,12 +3,13 @@ import SwiftUI
 
 /// A tab an app exposes in its settings popover. Apps declare a `CaseIterable`
 /// enum conforming to this; iUX renders the segmented switcher from `title`.
-public protocol SettingsTab: Hashable, Identifiable, CaseIterable {
-    /// Text shown in the segmented tab control.
-    var title: String { get }
-    /// SF Symbol name (used by apps for menus / status; optional in the bar).
-    var icon: String { get }
-}
+///
+/// `SettingsTab` refines `SidebarItem` (same shape — title + icon + Identifiable
+/// + Hashable) so the same enum drives both the popover's segmented bar and the
+/// pop-out window's sidebar without a second protocol. Existing conformers are
+/// unaffected: every `SettingsTab` already had to expose `title`, `icon`,
+/// `Identifiable`, `Hashable`.
+public protocol SettingsTab: SidebarItem, CaseIterable {}
 
 // The settings popover shell — a segmented tab switcher above a fixed-width
 // content column, exactly like Clonk's `PopoverView`. Apps supply the tab enum
