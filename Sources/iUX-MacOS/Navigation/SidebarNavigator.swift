@@ -31,6 +31,14 @@ public struct SidebarNavigator<Item: SidebarItem, Detail: View, Footer: View, Ac
     // Optional secondary line under a row's title (e.g. a repo's remote owner).
     // Defaults to `{ _ in nil }`, so rows stay single-line unless an app opts in.
     private let subtitle: (Item) -> String?
+    // Optional grouping key. When set, items are split into labelled sections.
+    private let groupBy: ((Item) -> String)?
+
+    private var groupedItems: [(key: String, items: [Item])] {
+        guard let groupBy else { return [] }
+        let grouped = Dictionary(grouping: items, by: groupBy)
+        return grouped.keys.sorted().map { (key: $0, items: grouped[$0] ?? []) }
+    }
 
     // The single source of truth for whether the sidebar is showing — the
     // "toggle logic" centralised here rather than in each app.
@@ -42,6 +50,7 @@ public struct SidebarNavigator<Item: SidebarItem, Detail: View, Footer: View, Ac
         selection: Binding<Item?>,
         emptyPrompt: String = "Nothing selected",
         subtitle: @escaping (Item) -> String? = { _ in nil },
+        groupBy: ((Item) -> String)? = nil,
         @ViewBuilder detail: @escaping (Item) -> Detail,
         @ViewBuilder accessory: @escaping (Item) -> Accessory,
         @ViewBuilder footer: () -> Footer = { EmptyView() }
@@ -51,6 +60,7 @@ public struct SidebarNavigator<Item: SidebarItem, Detail: View, Footer: View, Ac
         self._selection = selection
         self.emptyPrompt = emptyPrompt
         self.subtitle = subtitle
+        self.groupBy = groupBy
         self.detail = detail
         self.accessory = accessory
         self.footer = footer()
@@ -65,6 +75,7 @@ public struct SidebarNavigator<Item: SidebarItem, Detail: View, Footer: View, Ac
         selection: Binding<Item?>,
         emptyPrompt: String = "Nothing selected",
         subtitle: @escaping (Item) -> String? = { _ in nil },
+        groupBy: ((Item) -> String)? = nil,
         @ViewBuilder detail: @escaping (Item) -> Detail,
         @ViewBuilder footer: () -> Footer = { EmptyView() }
     ) where Accessory == EmptyView {
@@ -74,10 +85,33 @@ public struct SidebarNavigator<Item: SidebarItem, Detail: View, Footer: View, Ac
             selection: selection,
             emptyPrompt: emptyPrompt,
             subtitle: subtitle,
+            groupBy: groupBy,
             detail: detail,
             accessory: { _ in EmptyView() },
             footer: footer
         )
+    }
+
+    @ViewBuilder
+    private func row(for item: Item) -> some View {
+        HStack(spacing: 6) {
+            if let sub = subtitle(item), !sub.isEmpty {
+                Image(systemName: item.icon)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 18)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(item.title)
+                    Text(sub)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                Label(item.title, systemImage: item.icon)
+            }
+            Spacer(minLength: 4)
+            accessory(item)
+        }
+        .tag(item)
     }
 
     public var body: some View {
@@ -97,26 +131,18 @@ public struct SidebarNavigator<Item: SidebarItem, Detail: View, Footer: View, Ac
         // makes the tag explicit and keeps the tag/selection types aligned.
         NavigationSplitView(columnVisibility: $columnVisibility) {
             List(selection: $selection) {
-                ForEach(items) { item in
-                    HStack(spacing: 6) {
-                        if let sub = subtitle(item), !sub.isEmpty {
-                            // Two-line row: icon beside a title + secondary line.
-                            Image(systemName: item.icon)
-                                .foregroundStyle(.secondary)
-                                .frame(width: 18)
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text(item.title)
-                                Text(sub)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                if groupBy != nil {
+                    ForEach(groupedItems, id: \.key) { group in
+                        Section(group.key) {
+                            ForEach(group.items) { item in
+                                row(for: item)
                             }
-                        } else {
-                            Label(item.title, systemImage: item.icon)
                         }
-                        Spacer(minLength: 4)
-                        accessory(item)
                     }
-                    .tag(item)
+                } else {
+                    ForEach(items) { item in
+                        row(for: item)
+                    }
                 }
             }
             .listStyle(.sidebar)
