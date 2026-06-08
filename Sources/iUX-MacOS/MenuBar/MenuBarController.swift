@@ -63,8 +63,15 @@ public final class MenuBarController: NSObject {
 
     private func installStatusItem(symbolName: String, accessibilityLabel: String) {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        // Persist the user's chosen position across launches (and keep it out from
+        // under the notch once placed).
+        item.autosaveName = accessibilityLabel
         if let button = item.button {
-            button.image = NSImage(systemSymbolName: symbolName, accessibilityDescription: accessibilityLabel)
+            let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: accessibilityLabel)
+            button.image = image
+            // Fallback so the item is never a zero-width (invisible) button if the
+            // SF Symbol fails to resolve on this OS.
+            if image == nil { button.title = String(accessibilityLabel.prefix(2)) }
             button.target = self
             button.action = #selector(handleClick(_:))
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
