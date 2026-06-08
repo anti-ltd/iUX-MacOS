@@ -35,6 +35,8 @@ public struct SidebarNavigator<Item: SidebarItem, Detail: View, Footer: View, Ac
     private let groupBy: ((Item) -> String)?
     // Optional per-item icon color. Defaults to `.secondary` when nil.
     private let iconColor: ((Item) -> Color)?
+    // Optional per-item loading state. When true, replaces the icon with a spinner.
+    private let isLoading: ((Item) -> Bool)?
 
     private var groupedItems: [(key: String, items: [Item])] {
         guard let groupBy else { return [] }
@@ -54,6 +56,7 @@ public struct SidebarNavigator<Item: SidebarItem, Detail: View, Footer: View, Ac
         subtitle: @escaping (Item) -> String? = { _ in nil },
         groupBy: ((Item) -> String)? = nil,
         iconColor: ((Item) -> Color)? = nil,
+        isLoading: ((Item) -> Bool)? = nil,
         @ViewBuilder detail: @escaping (Item) -> Detail,
         @ViewBuilder accessory: @escaping (Item) -> Accessory,
         @ViewBuilder footer: () -> Footer = { EmptyView() }
@@ -65,6 +68,7 @@ public struct SidebarNavigator<Item: SidebarItem, Detail: View, Footer: View, Ac
         self.subtitle = subtitle
         self.groupBy = groupBy
         self.iconColor = iconColor
+        self.isLoading = isLoading
         self.detail = detail
         self.accessory = accessory
         self.footer = footer()
@@ -81,6 +85,7 @@ public struct SidebarNavigator<Item: SidebarItem, Detail: View, Footer: View, Ac
         subtitle: @escaping (Item) -> String? = { _ in nil },
         groupBy: ((Item) -> String)? = nil,
         iconColor: ((Item) -> Color)? = nil,
+        isLoading: ((Item) -> Bool)? = nil,
         @ViewBuilder detail: @escaping (Item) -> Detail,
         @ViewBuilder footer: () -> Footer = { EmptyView() }
     ) where Accessory == EmptyView {
@@ -92,6 +97,7 @@ public struct SidebarNavigator<Item: SidebarItem, Detail: View, Footer: View, Ac
             subtitle: subtitle,
             groupBy: groupBy,
             iconColor: iconColor,
+            isLoading: isLoading,
             detail: detail,
             accessory: { _ in EmptyView() },
             footer: footer
@@ -101,10 +107,18 @@ public struct SidebarNavigator<Item: SidebarItem, Detail: View, Footer: View, Ac
     @ViewBuilder
     private func row(for item: Item) -> some View {
         let color = iconColor?(item) ?? .secondary
+        let loading = isLoading?(item) ?? false
         HStack(spacing: 6) {
-            Image(systemName: item.icon)
-                .foregroundStyle(color)
-                .frame(width: 18)
+            Group {
+                if loading {
+                    ProgressView()
+                        .controlSize(.small)
+                } else {
+                    Image(systemName: item.icon)
+                        .foregroundStyle(color)
+                }
+            }
+            .frame(width: 18)
             if let sub = subtitle(item), !sub.isEmpty {
                 VStack(alignment: .leading, spacing: 1) {
                     Text(item.title)
