@@ -61,6 +61,10 @@ public final class MenuBarController: NSObject {
     /// Whether the popover is currently visible.
     public var isShown: Bool { popover.isShown }
 
+    /// Exposes the installed status item for host-app health checks (e.g. Tahoe
+    /// menu bar allow-list guidance). Do not retain outside the controller.
+    public func statusItemForGuidance() -> NSStatusItem? { statusItem }
+
     private func installStatusItem(symbolName: String, accessibilityLabel: String) {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         // Persist the user's chosen position across launches (and keep it out from
