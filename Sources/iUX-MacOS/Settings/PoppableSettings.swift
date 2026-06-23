@@ -124,9 +124,27 @@ where Tab.AllCases: RandomAccessCollection {
 
     public var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
-            List(selection: $selection) {
+            // Button rows, not `List(selection:)` — the latter silently drops
+            // clicks in LSUIElement (menu-bar) app windows. See SidebarNavigator.
+            List {
                 ForEach(items) { tab in
-                    Label(tab.title, systemImage: tab.icon).tag(tab)
+                    Button {
+                        selection = tab
+                    } label: {
+                        Label(tab.title, systemImage: tab.icon)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 5)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .fill(selection == tab ? AnyShapeStyle(Color.accentColor.opacity(0.18))
+                                                           : AnyShapeStyle(Color.clear))
+                            )
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .listRowInsets(EdgeInsets(top: 1, leading: 6, bottom: 1, trailing: 6))
+                    .listRowBackground(Color.clear)
                 }
             }
             .listStyle(.sidebar)

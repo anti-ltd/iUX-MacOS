@@ -132,7 +132,36 @@ public struct SidebarNavigator<Item: SidebarItem, Detail: View, Footer: View, Ac
             Spacer(minLength: 4)
             accessory(item)
         }
-        .tag(item)
+    }
+
+    // Button-backed row. A `List(selection:)` sidebar silently drops selection
+    // clicks in an LSUIElement (menu-bar / accessory) app's window: that window
+    // isn't key, and List selection only tracks in a key window, so rows never
+    // highlight or switch even though ordinary controls in the detail pane keep
+    // working. Plain Buttons are NSControls and fire regardless of key state, so
+    // each row is a Button that sets `selection` itself. The `List` wrapper is
+    // kept only for the sidebar's vibrant material + insets; the selection
+    // highlight is drawn here.
+    @ViewBuilder
+    private func selectableRow(for item: Item) -> some View {
+        let isSelected = selection == item
+        Button {
+            selection = item
+        } label: {
+            row(for: item)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 5)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(isSelected ? AnyShapeStyle(Color.accentColor.opacity(0.18))
+                                         : AnyShapeStyle(Color.clear))
+                )
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .listRowInsets(EdgeInsets(top: 1, leading: 6, bottom: 1, trailing: 6))
+        .listRowBackground(Color.clear)
     }
 
     public var body: some View {
@@ -144,25 +173,23 @@ public struct SidebarNavigator<Item: SidebarItem, Detail: View, Footer: View, Ac
         // (e.g. App-arently's AppStage driver seeding `selection` at launch) —
         // the list row highlights but the detail column stays on `emptyPrompt`.
         //
-        // Use the `List(selection:)` + `ForEach` + explicit `.tag(item)` form
-        // (not `List(items, selection:)`). The data-driven `List` initializer
-        // auto-tags each row with `item.id`, which silently shadows any
-        // `.tag(item)` you add inside — so the binding (typed `Item?`) never
-        // matches the row tag (`Item.ID`) and clicks become no-ops. This form
-        // makes the tag explicit and keeps the tag/selection types aligned.
+        // The sidebar is a plain `List` (no `selection:` binding) whose rows are
+        // Buttons — see `selectableRow(for:)`. This is what makes the sidebar
+        // clickable inside LSUIElement / menu-bar app windows, where a
+        // `List(selection:)` silently ignores clicks.
         NavigationSplitView(columnVisibility: $columnVisibility) {
-            List(selection: $selection) {
+            List {
                 if groupBy != nil {
                     ForEach(groupedItems, id: \.key) { group in
                         Section(group.key) {
                             ForEach(group.items) { item in
-                                row(for: item)
+                                selectableRow(for: item)
                             }
                         }
                     }
                 } else {
                     ForEach(items) { item in
-                        row(for: item)
+                        selectableRow(for: item)
                     }
                 }
             }
