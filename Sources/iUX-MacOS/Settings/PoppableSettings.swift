@@ -152,10 +152,15 @@ where Tab.AllCases: RandomAccessCollection {
             .navigationTitle(title)
         } detail: {
             if let tab = selection {
-                ScrollView {
-                    content(tab)
-                        .padding(UX.popoverPadding)
-                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                // Stretch content to at least the viewport height so full-height
+                // layouts (lists, split columns) reach the window bottom, while
+                // taller content still scrolls.
+                GeometryReader { proxy in
+                    ScrollView {
+                        content(tab)
+                            .padding(UX.popoverPadding)
+                            .frame(maxWidth: .infinity, minHeight: proxy.size.height, alignment: .topLeading)
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .navigationTitle(tab.title)
